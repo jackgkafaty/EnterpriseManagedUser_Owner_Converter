@@ -209,7 +209,7 @@ class GitHubEnterpriseAPI {
       
       const data: PaginatedResponse<ScimUser> = await response.json()
       return data.Resources || []
-    } catch (error) {
+    } catch {
       // Return empty array to avoid breaking other parallel requests
       return []
     }
