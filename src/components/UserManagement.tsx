@@ -99,43 +99,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
     setCurrentPage(1)
   }
 
-  // Count enterprise owners - use the isEnterpriseOwner flag as the primary source of truth
-  const enterpriseOwnerCount = users.filter(user => user.isEnterpriseOwner).length
-
-  // Debug logging to help identify count discrepancies
-  React.useEffect(() => {
-    if (users.length > 0) {
-      const ownersFromFlag = users.filter(user => user.isEnterpriseOwner).length
-      const ownersFromRole = users.filter(user => user.currentRole === 'Enterprise Owner').length
-      const totalUsers = users.length
-      
-      console.log('User Count Debug:', {
-        totalUsers,
-        ownersFromFlag,
-        ownersFromRole,
-        regularUsers: totalUsers - ownersFromFlag,
-        discrepancy: ownersFromFlag !== ownersFromRole ? 'YES' : 'NO'
-      })
-      
-      // Log sample of users with mismatched data
-      const mismatchedUsers = users.filter(user => 
-        (user.isEnterpriseOwner && user.currentRole !== 'Enterprise Owner') ||
-        (!user.isEnterpriseOwner && user.currentRole === 'Enterprise Owner')
-      )
-      
-      if (mismatchedUsers.length > 0) {
-        console.log('Users with mismatched isEnterpriseOwner vs currentRole:', 
-          mismatchedUsers.slice(0, 5).map(user => ({
-            name: user.name,
-            isEnterpriseOwner: user.isEnterpriseOwner,
-            currentRole: user.currentRole,
-            roles: user.roles
-          }))
-        )
-      }
-    }
-  }, [users])
-
   // Generate page numbers for pagination
   const getPageNumbers = () => {
     const pages = []
@@ -179,34 +142,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
         </div>
       )}
       
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-[#161b22] to-[#1f2428] border border-[#30363d] rounded-lg p-6 hover:border-[#58a6ff]/50 transition-all duration-200 shadow-lg">
-          <h3 className="text-sm font-medium text-[#7d8590] uppercase tracking-wider">Total Users</h3>
-          <p className="text-3xl font-bold text-[#e6edf3] mt-2">{users.length}</p>
-          <div className="mt-2 flex items-center">
-            <div className="w-2 h-2 bg-[#58a6ff] rounded-full mr-2"></div>
-            <span className="text-xs text-[#7d8590]">All Enterprise Members</span>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-[#161b22] to-[#1f2428] border border-[#30363d] rounded-lg p-6 hover:border-[#58a6ff]/50 transition-all duration-200 shadow-lg">
-          <h3 className="text-sm font-medium text-[#7d8590] uppercase tracking-wider">Enterprise Owners</h3>
-          <p className="text-3xl font-bold text-[#58a6ff] mt-2">{enterpriseOwnerCount}</p>
-          <div className="mt-2 flex items-center">
-            <div className="w-2 h-2 bg-[#58a6ff] rounded-full mr-2"></div>
-            <span className="text-xs text-[#7d8590]">Administrative Access</span>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-[#161b22] to-[#1f2428] border border-[#30363d] rounded-lg p-6 hover:border-[#58a6ff]/50 transition-all duration-200 shadow-lg">
-          <h3 className="text-sm font-medium text-[#7d8590] uppercase tracking-wider">Regular Users</h3>
-          <p className="text-3xl font-bold text-[#2ea043] mt-2">{users.length - enterpriseOwnerCount}</p>
-          <div className="mt-2 flex items-center">
-            <div className="w-2 h-2 bg-[#2ea043] rounded-full mr-2"></div>
-            <span className="text-xs text-[#7d8590]">Standard Members</span>
-          </div>
-        </div>
-      </div>
-
       {/* Controls */}
       <div className="bg-gradient-to-r from-[#161b22] to-[#1f2428] border border-[#30363d] rounded-lg p-6 mb-6 shadow-lg">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -257,32 +192,18 @@ const UserManagement: React.FC<UserManagementProps> = ({
           </div>
 
           {/* Refresh Button */}
+                    {/* Refresh Button */}
           <button 
             onClick={onRefresh} 
             disabled={isLoading}
-            className="bg-gradient-to-r from-[#238636] to-[#2ea043] hover:from-[#2ea043] hover:to-[#3fb950] border border-[#238636] text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-[#238636]/25 disabled:hover:from-[#238636] disabled:hover:to-[#2ea043]"
+            className="bg-gradient-to-r from-[#238636] to-[#2ea043] hover:from-[#2ea043] hover:to-[#3fb950] border border-[#238636] text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-[#238636]/25 disabled:hover:from-[#238636] disabled:hover:to-[#2ea043] min-w-[120px]"
           >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            )}
-            {isLoading ? 'Refreshing...' : 'Refresh'}
+            <svg className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
           </button>
         </div>
-
-        {/* Results Info */}
-        {filteredUsers.length !== users.length && (
-          <div className="mt-4 pt-4 border-t border-[#30363d]">
-            <p className="text-sm text-[#7d8590]">
-              Showing <span className="text-[#58a6ff] font-medium">{filteredUsers.length}</span> of <span className="text-[#e6edf3] font-medium">{users.length}</span> users
-              {searchTerm && <span className="text-[#f85149]"> matching "{searchTerm}"</span>}
-              {filterByRole !== 'all' && <span className="text-[#a855f7]"> filtered by {filterByRole === 'owners' ? 'Enterprise Owners' : 'Regular Users'}</span>}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Error Banner */}
@@ -347,44 +268,38 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-[#7d8590]">
-                Showing {startIndex + 1}-{Math.min(startIndex + usersPerPage, filteredUsers.length)} of {filteredUsers.length} users
+            <div className="flex items-center justify-center gap-2">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-[#e6edf3] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                      currentPage === page 
+                        ? 'bg-[#58a6ff] text-white' 
+                        : 'text-[#e6edf3] bg-[#21262d] border border-[#30363d] hover:bg-[#30363d]'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
               
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm font-medium text-[#e6edf3] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {getPageNumbers().map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                        currentPage === page 
-                          ? 'bg-[#58a6ff] text-white' 
-                          : 'text-[#e6edf3] bg-[#21262d] border border-[#30363d] hover:bg-[#30363d]'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-                
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm font-medium text-[#e6edf3] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  Next
-                </button>
-              </div>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-[#e6edf3] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Next
+              </button>
             </div>
           )}
         </>

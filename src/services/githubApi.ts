@@ -155,7 +155,6 @@ class GitHubEnterpriseAPI {
       const totalUsers = initialData.totalResults
 
       if (totalUsers === 0) {
-        console.log('No users found in the enterprise')
         return []
       }
 
@@ -175,9 +174,24 @@ class GitHubEnterpriseAPI {
       
       // Flatten all results
       const allScimUsers = pageResults.flat()
+
+      // Remove duplicates by ID (in case of pagination overlap)
+      const uniqueScimUsers = allScimUsers.filter((user, index, array) => 
+        array.findIndex(u => u.id === user.id) === index
+      )
+
+      // Filter out inactive users if needed
+      const activeUsers = uniqueScimUsers.filter(user => user.active !== false)
       
       // Convert SCIM users to our User interface with role information
-      return allScimUsers.map(scimUser => this.convertScimUser(scimUser))
+      const convertedUsers = activeUsers.map(scimUser => this.convertScimUser(scimUser))
+      
+      // Additional deduplication by email as a safety measure
+      const finalUsers = convertedUsers.filter((user, index, array) => 
+        array.findIndex(u => u.email === user.email) === index
+      )
+      
+      return finalUsers
     } catch (error) {
       console.error('Error fetching all users:', error)
       throw error
@@ -190,14 +204,12 @@ class GitHubEnterpriseAPI {
       const response = await this.makeRequest(url)
       
       if (!response.ok) {
-        console.warn(`Failed to fetch page starting at ${startIndex}: ${response.statusText}`)
         return []
       }
       
       const data: PaginatedResponse<ScimUser> = await response.json()
       return data.Resources || []
     } catch (error) {
-      console.error(`Error fetching page starting at ${startIndex}:`, error)
       // Return empty array to avoid breaking other parallel requests
       return []
     }
