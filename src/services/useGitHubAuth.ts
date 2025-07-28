@@ -59,25 +59,15 @@ export const useGitHubAuth = () => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
     
     try {
-      const success = await authState.api.authenticate(enterpriseName.trim(), token.trim())
+      await authState.api.authenticate(enterpriseName.trim(), token.trim())
       
-      if (success) {
-        setAuthState(prev => ({
-          ...prev,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null
-        }))
-        return true
-      } else {
-        setAuthState(prev => ({
-          ...prev,
-          isAuthenticated: false,
-          isLoading: false,
-          error: 'Invalid credentials or insufficient permissions'
-        }))
-        return false
-      }
+      setAuthState(prev => ({
+        ...prev,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
+      }))
+      return true
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
       setAuthState(prev => ({

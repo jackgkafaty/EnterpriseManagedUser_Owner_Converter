@@ -88,10 +88,28 @@ class GitHubEnterpriseAPI {
 
       // Test authentication with a simple request
       const response = await this.makeRequest(`${this.baseUrl}/Users?count=1`)
-      return response.ok
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid authentication token. Please check your Personal Access Token.')
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please ensure your token has admin:enterprise scope.')
+        } else if (response.status === 404) {
+          throw new Error('Enterprise not found. Please verify your enterprise name.')
+        } else {
+          throw new Error(`Authentication failed: ${response.status} ${response.statusText}`)
+        }
+      }
+      
+      return true
     } catch (error) {
       console.error('Authentication failed:', SecurityUtils.sanitizeError(error))
-      return false
+      // Clear invalid credentials
+      await CredentialManager.clearCredentials()
+      this.enterpriseName = ''
+      this.token = ''
+      this.baseUrl = ''
+      throw error
     }
   }
 
@@ -116,18 +134,31 @@ class GitHubEnterpriseAPI {
       if (!this.token || !this.enterpriseName) {
         await this.loadCredentials()
         if (!this.token || !this.enterpriseName) {
-          throw new Error('No authentication credentials found')
+          throw new Error('No authentication credentials found. Please log in again.')
         }
       }
 
       // First, get the total count of users
       const initialResponse = await this.makeRequest(`${this.baseUrl}/Users?count=1`)
       if (!initialResponse.ok) {
-        throw new Error(`Failed to fetch users: ${initialResponse.statusText}`)
+        if (initialResponse.status === 401) {
+          throw new Error('Authentication failed. Please check your credentials and try again.')
+        } else if (initialResponse.status === 403) {
+          throw new Error('Access denied. Please ensure your token has the required enterprise permissions.')
+        } else if (initialResponse.status === 404) {
+          throw new Error('Enterprise not found. Please check your enterprise name.')
+        }
+        throw new Error(`Failed to fetch users: ${initialResponse.status} ${initialResponse.statusText}`)
       }
       
       const initialData: PaginatedResponse<ScimUser> = await initialResponse.json()
       const totalUsers = initialData.totalResults
+
+      if (totalUsers === 0) {
+        console.log('No users found in the enterprise')
+        return []
+      }
+
       const usersPerPage = 100 // GitHub's maximum
       const totalPages = Math.ceil(totalUsers / usersPerPage)
 
