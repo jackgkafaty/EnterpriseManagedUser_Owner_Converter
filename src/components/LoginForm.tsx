@@ -10,7 +10,6 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading, error }) => {
   const [enterpriseName, setEnterpriseName] = useState('')
   const [token, setToken] = useState('')
-  const [showToken, setShowToken] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,8 +25,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading, error }) => {
         
         <div className="bg-[#161b22] border border-[#30363d] rounded-lg shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#e6edf3] mb-2">GitHub Enterprise Authentication</h2>
-            <p className="text-[#7d8590] text-sm">Connect to your GitHub Enterprise to manage Enterprise Owner roles</p>
+            <h2 className="text-2xl font-bold text-[#e6edf3] mb-2">Login</h2>
+            <p className="text-[#7d8590] text-sm">GitHub Enterprise Managed Users - Role Management</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -40,7 +39,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading, error }) => {
                 type="text"
                 value={enterpriseName}
                 onChange={(e) => setEnterpriseName(e.target.value)}
-                placeholder="my-enterprise or enterprise.github.com"
+                placeholder="my-enterprise"
                 required
                 disabled={isLoading}
                 className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#7d8590] focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -54,26 +53,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading, error }) => {
               <label htmlFor="token" className="block text-sm font-medium text-[#e6edf3] mb-2">
                 Personal Access Token
               </label>
-              <div className="relative">
-                <input
-                  id="token"
-                  type={showToken ? 'text' : 'password'}
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                  required
-                  disabled={isLoading}
-                  className="w-full px-3 py-2 pr-10 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#7d8590] focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowToken(!showToken)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#7d8590] hover:text-[#e6edf3] disabled:opacity-50"
-                  disabled={isLoading}
-                >
-                  {showToken ? '👁️' : '👁️‍🗨️'}
-                </button>
-              </div>
+              <input
+                id="token"
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                required
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#7d8590] focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              />
               <p className="text-xs text-[#7d8590] mt-1">
                 🔒 Your token will be encrypted and stored securely locally
               </p>
