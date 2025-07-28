@@ -76,8 +76,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
         (user.department && user.department.toLowerCase().includes(searchLower))
       
       const matchesFilter = filterByRole === 'all' ||
-                           (filterByRole === 'owners' && (user.isEnterpriseOwner || user.currentRole === 'Enterprise Owner')) ||
-                           (filterByRole === 'non-owners' && (!user.isEnterpriseOwner && user.currentRole !== 'Enterprise Owner'))
+                           (filterByRole === 'owners' && user.isEnterpriseOwner) ||
+                           (filterByRole === 'non-owners' && !user.isEnterpriseOwner)
       
       return matchesSearch && matchesFilter
     })
@@ -99,10 +99,42 @@ const UserManagement: React.FC<UserManagementProps> = ({
     setCurrentPage(1)
   }
 
-  // Count enterprise owners by current role AND isEnterpriseOwner flag
-  const enterpriseOwnerCount = users.filter(user => 
-    user.isEnterpriseOwner || user.currentRole === 'Enterprise Owner'
-  ).length
+  // Count enterprise owners - use the isEnterpriseOwner flag as the primary source of truth
+  const enterpriseOwnerCount = users.filter(user => user.isEnterpriseOwner).length
+
+  // Debug logging to help identify count discrepancies
+  React.useEffect(() => {
+    if (users.length > 0) {
+      const ownersFromFlag = users.filter(user => user.isEnterpriseOwner).length
+      const ownersFromRole = users.filter(user => user.currentRole === 'Enterprise Owner').length
+      const totalUsers = users.length
+      
+      console.log('User Count Debug:', {
+        totalUsers,
+        ownersFromFlag,
+        ownersFromRole,
+        regularUsers: totalUsers - ownersFromFlag,
+        discrepancy: ownersFromFlag !== ownersFromRole ? 'YES' : 'NO'
+      })
+      
+      // Log sample of users with mismatched data
+      const mismatchedUsers = users.filter(user => 
+        (user.isEnterpriseOwner && user.currentRole !== 'Enterprise Owner') ||
+        (!user.isEnterpriseOwner && user.currentRole === 'Enterprise Owner')
+      )
+      
+      if (mismatchedUsers.length > 0) {
+        console.log('Users with mismatched isEnterpriseOwner vs currentRole:', 
+          mismatchedUsers.slice(0, 5).map(user => ({
+            name: user.name,
+            isEnterpriseOwner: user.isEnterpriseOwner,
+            currentRole: user.currentRole,
+            roles: user.roles
+          }))
+        )
+      }
+    }
+  }, [users])
 
   // Generate page numbers for pagination
   const getPageNumbers = () => {
@@ -230,9 +262,13 @@ const UserManagement: React.FC<UserManagementProps> = ({
             disabled={isLoading}
             className="bg-gradient-to-r from-[#238636] to-[#2ea043] hover:from-[#2ea043] hover:to-[#3fb950] border border-[#238636] text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-[#238636]/25 disabled:hover:from-[#238636] disabled:hover:to-[#2ea043]"
           >
-            <svg className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            )}
             {isLoading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>

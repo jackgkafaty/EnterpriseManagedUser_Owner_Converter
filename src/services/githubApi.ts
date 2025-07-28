@@ -235,23 +235,22 @@ class GitHubEnterpriseAPI {
       return roleMap[roleValue] || roleValue
     }
 
-    const primaryRole = scimUser.roles?.find(role => role.primary)?.value || 
-                       roles.find(role => role.toLowerCase().includes('enterprise') || role === '981df190-8801-4618-a08a-d91f6206c954') ||
-                       roles[0] || 
-                       'user'
-
     // Check if user is enterprise owner by role value only (since REST API calls removed)
     const isEnterpriseOwnerByRole = roles.some(role => 
       role === 'enterprise_owner' || role === '981df190-8801-4618-a08a-d91f6206c954' || role === 'ba4987ab-a1c3-412a-b58c-360fc407cb10'
     )
-    const isEnterpriseOwner = isEnterpriseOwnerByRole
+
+    // Determine primary role - prioritize enterprise owner if they have that role
+    const primaryRole = isEnterpriseOwnerByRole 
+      ? (roles.find(role => role === 'enterprise_owner' || role === '981df190-8801-4618-a08a-d91f6206c954' || role === 'ba4987ab-a1c3-412a-b58c-360fc407cb10') || 'enterprise_owner')
+      : (scimUser.roles?.find(role => role.primary)?.value || roles[0] || 'user')
 
     return {
       id: scimUser.id,
       name: fullName,
       email: primaryEmail,
       login: scimUser.userName,
-      isEnterpriseOwner: isEnterpriseOwner,
+      isEnterpriseOwner: isEnterpriseOwnerByRole,
       department: department,
       lastLogin: scimUser.meta?.lastModified || scimUser.meta?.created || new Date().toISOString().split('T')[0],
       roles: roles,
