@@ -1,0 +1,13 @@
+/* This file is now using Tailwind CSS classes in components */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0d1117;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
